@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard — Phishing Detection System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app"></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot"></div>
+  <span id="toast-msg">Saved!</span>
+</div>
+
+<!--
+  SCRIPT LOADING ORDER MATTERS:
+  1. config   → API_BASE constant
+  2. state    → shared state object + ITEMS_PER_PAGE
+  3. utils    → helper functions (scoreColor, formatDate, showToast, mapApiResponse)
+  4. pages/*  → each page's render function
+  5. render   → app shell (render, renderSidebar, renderTopbar, renderPage)
+  6. actions  → all user interactions (startScan, loadHistory, navigate...)
+  7. boot     → starts the app
+-->
+
+<!-- 1. Config -->
+<script src="js/config.js"></script>
+
+<!-- 2. State -->
+<script src="js/state.js"></script>
+
+<!-- 3. Utilities -->
+<script src="js/utils.js"></script>
+
+<!-- 4. Pages -->
+<script src="js/pages/dashboard.js"></script>
+<script src="js/pages/scan.js"></script>
+<script src="js/pages/results.js"></script>
+<script src="js/pages/history.js"></script>
+<script src="js/pages/settings.js"></script>
+
+<!-- 5. Render engine -->
+<script src="js/render.js"></script>
+
+<!-- 6. Actions -->
+<script src="js/actions.js"></script>
+
+<!-- 7. Boot -->
+<script src="js/boot.js"></script>
+
+</body>
+</html>
