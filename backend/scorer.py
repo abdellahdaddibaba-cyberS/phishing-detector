@@ -7,6 +7,7 @@ from preprocessor import preprocess
 from analyzer.linguistic   import analyze_text, generate_linguistic_explanation
 from analyzer.url_check    import analyze_urls,  generate_url_explanation
 from analyzer.attachment   import analyze_attachments, generate_attachment_explanation
+from analyzer.context_combination import analyze_context_combinations, generate_context_explanation
 
 # ─────────────────────────────────────────────
 #  Scoring Engine + Decision Engine
@@ -33,12 +34,15 @@ def get_risk_level(score: int) -> str:
         return "Phishing"
 
 
-def generate_explanation(linguistic: dict, urls: dict, attachments: dict) -> list:
+def generate_explanation(linguistic: dict, urls: dict, attachments: dict, context_combos: dict = None) -> list:
     """
     Generates human-readable explanation lines.
     Implements section 3.4 of the rapport — the Explanation System.
     """
     lines = []
+
+    if context_combos and context_combos.get("combinations"):
+        lines.extend(generate_context_explanation(context_combos.get("combinations", [])))
 
     lines.extend(generate_linguistic_explanation(linguistic.get("found", [])))
     lines.extend(generate_url_explanation(urls.get("suspicious_urls", [])))
@@ -79,6 +83,9 @@ def analyze_email(email_text: str, uploaded_filename: str = None) -> dict:
     # Step 1: Preprocessing — pass uploaded_filename so it skips regex if provided
     parsed = preprocess(email_text, uploaded_filename=uploaded_filename)
 
+    # Step 1.5: Context Combination Detection (applied first, before other rules)
+    context_result = analyze_context_combinations(email_text, parsed["urls"])
+
     # Step 2: Linguistic analysis
     linguistic_result = analyze_text(parsed["text"])
 
@@ -89,20 +96,21 @@ def analyze_email(email_text: str, uploaded_filename: str = None) -> dict:
     attachment_result = analyze_attachments(parsed["attachments"])
 
     # Step 5: Scoring engine (section 2.4 + 3.3)
-    raw_score   = linguistic_result["score"] + url_result["score"] + attachment_result["score"]
+    raw_score   = context_result["score"] + linguistic_result["score"] + url_result["score"] + attachment_result["score"]
     final_score = min(raw_score, 100)
 
     # Step 6: Risk level
     risk_level = get_risk_level(final_score)
 
     # Step 7: Explanation system (section 3.4)
-    explanation = generate_explanation(linguistic_result, url_result, attachment_result)
+    explanation = generate_explanation(linguistic_result, url_result, attachment_result, context_result)
 
     return {
         "score":       final_score,
         "risk_level":  risk_level,
         "explanation": explanation,
         "details": {
+            "context_combinations": context_result,
             "linguistic":  linguistic_result,
             "urls":        url_result,
             "attachments": attachment_result,
