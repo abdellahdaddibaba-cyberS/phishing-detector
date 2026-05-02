@@ -54,8 +54,9 @@ def try_connect_local():
 def try_connect_atlas():
     try:
         import ssl, certifi
+        mongo_uri = os.getenv("MONGO_URI")
         client = MongoClient(
-            "mongodb+srv://abdellahdaddibaba_db_user:206zBkHb1JZ1Gpad@phishing-detector.c1oizfl.mongodb.net/",
+            mongo_uri,
             tls=True,
             tlsCAFile=certifi.where(),
             serverSelectionTimeoutMS=8000,
